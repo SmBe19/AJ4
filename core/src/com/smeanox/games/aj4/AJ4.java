@@ -25,7 +25,7 @@ public class AJ4 extends ApplicationAdapter {
 	float time;
 	float planex, planey;
 	float dudex, dudey, dudevy;
-	boolean dudeFlying, dudeParachuted, dudeGround, dudeDead;
+	boolean dudeInPlane, dudeFlying, dudeParachuted, dudeGround, dudeDead;
 	float groundtimeout;
 	float timer, highscore;
 	boolean timerRunning;
@@ -56,6 +56,7 @@ public class AJ4 extends ApplicationAdapter {
 		planey = aheight * 0.9f;
 		dudex = 0;
 		dudey = 0;
+		dudeInPlane = true;
 		dudeFlying = false;
 		dudeParachuted = false;
 		dudeGround = false;
@@ -73,7 +74,8 @@ public class AJ4 extends ApplicationAdapter {
 			planey = aheight * 0.9f + 10 * MathUtils.sin(time*2) + 3 * MathUtils.sin(time*3);
 		}
 
-		if (Math.abs(awidth * 0.5 - planex) < 5) {
+		if (dudeInPlane && planex < awidth * 0.5) {
+			dudeInPlane = false;
 			dudeFlying = true;
 			dudevy = 0;
 			dudex = planex;
@@ -93,6 +95,12 @@ public class AJ4 extends ApplicationAdapter {
 				dudevy -= dudevy * 0.05f;
 			}
 			dudey -= dudevy * delta;
+
+			if (!dudeParachuted) {
+				dudex = awidth * 0.5f;
+			} else {
+				dudex = awidth * 0.5f + 1.7f *  MathUtils.sin(time * 4) + 0.8f * MathUtils.sin(time * 7);
+			}
 
 			if (dudey < aheight * 0.1) {
 				dudeGround = true;
@@ -123,7 +131,7 @@ public class AJ4 extends ApplicationAdapter {
 		}
 	}
 
-	String floatToString(float f) {
+	private String floatToString(float f) {
 		if (Float.isInfinite(f)) {
 			return "-.--";
 		}
@@ -138,14 +146,15 @@ public class AJ4 extends ApplicationAdapter {
 		update(Gdx.graphics.getDeltaTime());
 
 		batch.begin();
-		batch.draw(sky, 0, 0);
-		batch.draw(ground, 0, 0);
-		batch.draw(plane, planex - 32, planey - 16, 64, 32);
+		batch.draw(sky, 0, 0, awidth, aheight);
+		float groundheight = awidth * ground.getWidth() / (float)ground.getHeight();
+		batch.draw(ground, 0, aheight * 0.1f - groundheight, awidth, groundheight);
+		batch.draw(plane, planex - 64, planey - 32, 128, 64);
 		if (dudeFlying) {
-			batch.draw(dudeParachuted ? dudeparachute : dude, dudex - 16, dudey - 16, 32, 32);
+			batch.draw(dudeParachuted ? dudeparachute : dude, dudex - 32, dudey - 32, 64, 64);
 		}
 		if (dudeGround) {
-			batch.draw(dudeDead ? dudedead : dudealive, dudex - 16, dudey - 16, 32, 32);
+			batch.draw(dudeDead ? dudedead : dudealive, dudex - 32, dudey - 32, 64, 64);
 		}
 
 		font.draw(batch, String.format(Locale.US,"%ss", floatToString(timer)), 16, aheight - 32);
