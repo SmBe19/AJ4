@@ -131,11 +131,19 @@ public class AJ4 extends ApplicationAdapter {
 		}
 	}
 
+	private char lastChar(String s) {
+		return s.charAt(s.length() - 1);
+	}
+
 	private String floatToString(float f) {
 		if (Float.isInfinite(f)) {
 			return "-.--";
 		}
-		return String.format(Locale.US,"%.2f", f);
+		String sol = "" + (int)Math.floor(f);
+		sol += ".";
+		sol += lastChar(""+(int)Math.floor(f*10));
+		sol += lastChar(""+(int)Math.floor(f*100));
+		return sol;
 	}
 
 	@Override
@@ -165,10 +173,10 @@ public class AJ4 extends ApplicationAdapter {
 			}
 		}
 
-		font.draw(batch, String.format(Locale.US,"%ss", floatToString(timer)), 16, aheight - 32);
+		font.draw(batch, floatToString(timer) + "s", 16, aheight - 32);
 
 		if (dudeGround) {
-			font.draw(batch, String.format(Locale.US, "best: %ss", floatToString(highscore)), 16, aheight - 128);
+			font.draw(batch, "best: " + floatToString(highscore) + "s", 16, aheight - 128);
 		}
 
 		batch.end();
