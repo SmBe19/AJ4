@@ -4,13 +4,19 @@ import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.MathUtils;
+
+import java.util.Locale;
 
 public class AJ4 extends ApplicationAdapter {
 	SpriteBatch batch;
 	Texture dude, dudeparachute, dudedead, dudealive, plane, sky, ground;
+	BitmapFont font;
+	OrthographicCamera camera;
 
 	int awidth = Consts.WIDTH;
 	int aheight = Consts.HEIGHT;
@@ -21,6 +27,8 @@ public class AJ4 extends ApplicationAdapter {
 	float dudex, dudey, dudevy;
 	boolean dudeFlying, dudeParachuted, dudeGround, dudeDead;
 	float groundtimeout;
+	float timer, highscore;
+	boolean timerRunning;
 
 	@Override
 	public void create () {
@@ -32,14 +40,19 @@ public class AJ4 extends ApplicationAdapter {
 		plane = new Texture("plane.jpg");
 		sky = new Texture("sky.jpg");
 		ground = new Texture("ground.jpg");
+		font = new BitmapFont(); // Todo better font
 
+		camera = new OrthographicCamera(Consts.WIDTH, Consts.HEIGHT);
+		camera.update();
+		batch.setProjectionMatrix(camera.combined);
+
+		highscore = Float.POSITIVE_INFINITY;
 		init();
 	}
 
 	private void init() {
 		time = 0;
-		planex = awidth + 10;
-		planex = awidth - 100;
+		planex = awidth + 32;
 		planey = aheight * 0.9f;
 		dudex = 0;
 		dudey = 0;
@@ -48,6 +61,8 @@ public class AJ4 extends ApplicationAdapter {
 		dudeGround = false;
 		dudeDead = false;
 		groundtimeout = 0;
+		timer = 0;
+		timerRunning = false;
 	}
 
 	private void update(float delta) {
@@ -63,6 +78,7 @@ public class AJ4 extends ApplicationAdapter {
 			dudevy = 0;
 			dudex = planex;
 			dudey = planey;
+			timerRunning = true;
 		}
 
 		if (dudeFlying) {
@@ -84,6 +100,12 @@ public class AJ4 extends ApplicationAdapter {
 				dudevy = 0;
 				dudeFlying = false;
 				groundtimeout = 1;
+
+				timerRunning = false;
+				if (dudeDead) {
+					timer =  Float.POSITIVE_INFINITY;
+				}
+				highscore = Math.min(highscore, timer);
 			}
 		}
 
@@ -95,6 +117,17 @@ public class AJ4 extends ApplicationAdapter {
 				}
 			}
 		}
+
+		if (timerRunning) {
+			timer += delta;
+		}
+	}
+
+	String floatToString(float f) {
+		if (Float.isInfinite(f)) {
+			return "-.--";
+		}
+		return String.format(Locale.US,"%.2f", f);
 	}
 
 	@Override
@@ -114,6 +147,13 @@ public class AJ4 extends ApplicationAdapter {
 		if (dudeGround) {
 			batch.draw(dudeDead ? dudedead : dudealive, dudex - 16, dudey - 16, 32, 32);
 		}
+
+		font.draw(batch, String.format(Locale.US,"%ss", floatToString(timer)), 16, aheight - 32);
+
+		if (dudeGround) {
+			font.draw(batch, String.format(Locale.US, "highscore: %ss", floatToString(highscore)), 16, aheight - 64);
+		}
+
 		batch.end();
 	}
 
@@ -122,6 +162,10 @@ public class AJ4 extends ApplicationAdapter {
 		super.resize(width, height);
 		float ratio = width / (float)height;
 		awidth = (int) (Consts.HEIGHT * ratio);
+
+		camera.setToOrtho(false, awidth, aheight);
+		camera.update();
+		batch.setProjectionMatrix(camera.combined);
 	}
 	
 	@Override
