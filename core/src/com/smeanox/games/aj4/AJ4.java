@@ -14,7 +14,7 @@ import java.util.Locale;
 
 public class AJ4 extends ApplicationAdapter {
 	SpriteBatch batch;
-	Texture dude, dudeparachute, dudedead, dudealive, plane, sky, ground;
+	Texture dude, parachute, dudedead, dudealive, plane, sky, ground;
 	BitmapFont font;
 	OrthographicCamera camera;
 
@@ -33,14 +33,14 @@ public class AJ4 extends ApplicationAdapter {
 	@Override
 	public void create () {
 		batch = new SpriteBatch();
-		dude = new Texture("dude.jpg");
-		dudeparachute = new Texture("dudeparachute.jpg");
-		dudedead = new Texture("dudedead.jpg");
-		dudealive = new Texture("dudealive.jpg");
-		plane = new Texture("plane.jpg");
-		sky = new Texture("sky.jpg");
-		ground = new Texture("ground.jpg");
-		font = new BitmapFont(); // Todo better font
+		dude = new Texture("dude.png");
+		parachute = new Texture("parachute.png");
+		dudedead = new Texture("dudedead.png");
+		dudealive = new Texture("dudealive.png");
+		plane = new Texture("plane.png");
+		sky = new Texture("sky.png");
+		ground = new Texture("ground.png");
+		font = new BitmapFont(Gdx.files.internal("font/dejavu.fnt")); // Todo better font
 
 		camera = new OrthographicCamera(Consts.WIDTH, Consts.HEIGHT);
 		camera.update();
@@ -147,20 +147,28 @@ public class AJ4 extends ApplicationAdapter {
 
 		batch.begin();
 		batch.draw(sky, 0, 0, awidth, aheight);
-		float groundheight = awidth * ground.getWidth() / (float)ground.getHeight();
-		batch.draw(ground, 0, aheight * 0.1f - groundheight, awidth, groundheight);
-		batch.draw(plane, planex - 64, planey - 32, 128, 64);
+		float groundheight = awidth * ground.getHeight() / (float)ground.getWidth();
+		batch.draw(ground, 0, 15, awidth, groundheight);
+		batch.draw(plane, planex - 128, planey - 85, 256, 170);
+		int dudesize = 100;
 		if (dudeFlying) {
-			batch.draw(dudeParachuted ? dudeparachute : dude, dudex - 32, dudey - 32, 64, 64);
+			if (dudeParachuted) {
+				batch.draw(parachute, dudex - dudesize/2, dudey, dudesize, dudesize);
+			}
+			batch.draw(dude, dudex - dudesize/2, dudey - dudesize/2, dudesize, dudesize);
 		}
 		if (dudeGround) {
-			batch.draw(dudeDead ? dudedead : dudealive, dudex - 32, dudey - 32, 64, 64);
+			if (dudeDead) {
+				batch.draw(dudedead, dudex - dudesize*0.75f, dudey - dudesize*0.75f*0.5f - 7, dudesize*1.5f, dudesize*0.75f);
+			} else {
+				batch.draw(dudealive, dudex - dudesize/2, dudey - dudesize/2, dudesize, dudesize);
+			}
 		}
 
 		font.draw(batch, String.format(Locale.US,"%ss", floatToString(timer)), 16, aheight - 32);
 
 		if (dudeGround) {
-			font.draw(batch, String.format(Locale.US, "highscore: %ss", floatToString(highscore)), 16, aheight - 64);
+			font.draw(batch, String.format(Locale.US, "best: %ss", floatToString(highscore)), 16, aheight - 128);
 		}
 
 		batch.end();
@@ -175,13 +183,16 @@ public class AJ4 extends ApplicationAdapter {
 		camera.setToOrtho(false, awidth, aheight);
 		camera.update();
 		batch.setProjectionMatrix(camera.combined);
+
+		float scale = height / (float)Consts.HEIGHT / 2f;
+		font.getData().setScale(scale, scale);
 	}
 	
 	@Override
 	public void dispose () {
 		batch.dispose();
 		dude.dispose();
-		dudeparachute.dispose();
+		parachute.dispose();
 		dudedead.dispose();
 		dudealive.dispose();
 		plane.dispose();
